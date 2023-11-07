@@ -4,6 +4,7 @@ import time
 import demoji
 import ast
 import re
+from conf import config
 
 class Crawling:
     bearer_token = ""
@@ -14,7 +15,7 @@ class Crawling:
     def __init__(self):
         # To set your environment variables in your terminal run the following line:
         # export 'BEARER_TOKEN'='<your_bearer_token>'
-        self.bearer_token = ""
+        self.bearer_token = config['bearer_token']
         self.search_url = "https://api.twitter.com/2/tweets/search/all"
         self.search_url_from_id = "https://api.twitter.com/2/users/"
 
