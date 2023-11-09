@@ -13,18 +13,13 @@ class Crawling:
     fw_name = ""
 
     def __init__(self):
-        # To set your environment variables in your terminal run the following line:
-        # export 'BEARER_TOKEN'='<your_bearer_token>'
+        # set BEARER_TOKEN in conf.py  ex) config = { 'bearer_token' : ... }
         self.bearer_token = config['bearer_token']
         self.search_url = "https://api.twitter.com/2/tweets/search/all"
-        self.search_url_from_id = "https://api.twitter.com/2/users/"
 
         # Optional params: start_time,end_time,since_id,until_id,max_results,next_token,
-        # expansions,tweet.fields,media.fields,poll.fields,place.fields,user.fields
-        self.query_params = {'query': '',
+        self.query_params = {'query': '', 'tweet.fields': 'created_at,lang,author_id',
                               'start_time': '2016-01-01T00:00:00Z', 'end_time': '2021-01-01T00:00:00Z', 'max_results': '10'}
-        # self.query_params = {'query': '', 'tweet.fields': 'created_at,lang,author_id',
-        #                       'start_time': '2016-01-01T00:00:00Z', 'end_time': '2021-01-01T00:00:00Z', 'max_results': '10'} 
         self.query_params_id = {'tweet.fields': 'created_at,lang,author_id,geo', 'start_time': '2016-01-01T00:00:00Z', 'end_time': '2021-01-01T00:00:00Z',
                                 'max_results': '100'}
         # expansions=author_id&tweet.fields=created_at,author_id,conversation_id,public_metrics,context_annotations&user.fields=username&max_results=5
@@ -41,24 +36,25 @@ class Crawling:
             raise Exception(response.status_code, response.text)
         return response.json()
 
-    def main_act_indi(self, brand_list, drug_name, start_time, end_time):
+    def make_file_name(self, keyword):
+        return keyword + self.query_params['start_time'][0:10] + "~" + self.query_params['end_time'][0:10]
+
+    def main_act_indi(self, keyword_list, keyword, start_time, end_time):
         self.query_params['start_time'] = start_time
         self.query_params['end_time'] = end_time
-        # self.query_params['tweet.fields'] = "lang,created_at,author_id"
-        # self.query_params['expansions'] = "geo.place_id"
-        # self.query_params['place.fields'] = "country"
+        self.query_params['tweet.fields'] = "lang,created_at,author_id"
 
         # main activity
-        # self.fw_name = drug_name + " " + self.query_params['start_time'][0:10] + "~" + self.query_params['end_time'][0:10] + ".txt"
-        self.fw_name = 'output/' + drug_name + ''.join(self.query_params['start_time'].split('-')[0:2]) + ".txt"
+        self.fw_name = 'output/' + self.make_file_name(keyword) + ".txt"
         fw = open(self.fw_name, "w", encoding="UTF8") # illegal multibyte sequence 오류 -> UTF8 설정으로 고침
-        for brand_name in brand_list:
-            self.query_params['query'] = brand_name
+
+        for keyword in keyword_list:
+            self.query_params['query'] = keyword
             print(self.query_params)
             self.crawling_part(fw)
 
     ''' start crawling 
-     parameter : 크롤링 결과가 담길 json 파일 객체 '''
+     parameter : 크롤링 결과가 담길 파일 객체 '''
     def crawling_part(self, fw):
         headers = self.create_headers()
 
@@ -70,12 +66,11 @@ class Crawling:
 
         # 이모티콘/느낌표,물음표 제거 (이모티콘 제거 안할 시 -> encoding 에러 발생)
         json_response = str(json_response)
-        # json_response = emoji.get_emoji_regexp().sub(r'', json_response)
         json_response = demoji.replace(json_response, '')
         # json_response = re.sub(r'[^ 0-9ㄱ-ㅣ가-힣A-Za-z.,!?"\':;~_\-@(){}\[\]]', '', json_response)
         json_response = re.sub(r'[^ 0-9ㄱ-ㅣ가-힣A-Za-z.,=<>+^$%&!?"\':;~_\-@(){}\[\]]', '', json_response)
         json_response = ast.literal_eval(json_response)
-        # print(json_response["meta"]["result_count"])
+        
         for i in range(json_response["meta"]["result_count"]):
             json_response["data"][i]["text"] = re.sub("n", '', json_response["data"][i]["text"])
             " ".join(json_response["data"][i]["text"].split())
