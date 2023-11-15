@@ -18,7 +18,7 @@ class Crawling:
         self.search_url = "https://api.twitter.com/2/tweets/search/all"
 
         self.query_params = {'query': '', 'tweet.fields': 'created_at,lang,author_id,entities,geo',
-                              'start_time': '', 'end_time': '', 'max_results': '100'}
+                              'start_time': '', 'end_time': '', 'max_results': '500'}
         self.fw_name = ""
 
     def create_headers(self):
