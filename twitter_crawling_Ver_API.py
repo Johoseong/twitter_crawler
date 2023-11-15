@@ -17,12 +17,8 @@ class Crawling:
         self.bearer_token = config['bearer_token']
         self.search_url = "https://api.twitter.com/2/tweets/search/all"
 
-        # Optional params: start_time,end_time,since_id,until_id,max_results,next_token,
-        self.query_params = {'query': '', 'tweet.fields': 'created_at,lang,author_id',
-                              'start_time': '2016-01-01T00:00:00Z', 'end_time': '2021-01-01T00:00:00Z', 'max_results': '10'}
-        self.query_params_id = {'tweet.fields': 'created_at,lang,author_id,geo', 'start_time': '2016-01-01T00:00:00Z', 'end_time': '2021-01-01T00:00:00Z',
-                                'max_results': '100'}
-        # expansions=author_id&tweet.fields=created_at,author_id,conversation_id,public_metrics,context_annotations&user.fields=username&max_results=5
+        self.query_params = {'query': '', 'tweet.fields': 'created_at,lang,author_id,entities,geo',
+                              'start_time': '', 'end_time': '', 'max_results': '100'}
         self.fw_name = ""
 
     def create_headers(self):
@@ -42,7 +38,6 @@ class Crawling:
     def main_act_indi(self, keyword_list, keyword, start_time, end_time):
         self.query_params['start_time'] = start_time
         self.query_params['end_time'] = end_time
-        self.query_params['tweet.fields'] = "lang,created_at,author_id"
 
         # main activity
         self.fw_name = 'output/' + self.make_file_name(keyword) + ".txt"
@@ -72,8 +67,21 @@ class Crawling:
         json_response = ast.literal_eval(json_response)
         
         for i in range(json_response["meta"]["result_count"]):
-            json_response["data"][i]["text"] = re.sub("n", '', json_response["data"][i]["text"])
+            json_response["data"][i]["text"] = re.sub("n", '', json_response["data"][i]["text"])  # 줄바꿈 n 쓰레기값 제거
             " ".join(json_response["data"][i]["text"].split())
+
+            if ("entities" not in json_response["data"][i]):
+                continue
+            if ("hashtags" not in json_response["data"][i]["entities"]):
+                del json_response["data"][i]["entities"]
+                continue
+            
+            hashtags = []
+            for h in json_response["data"][i]["entities"]["hashtags"]:
+                hashtags.append(h["tag"])
+
+            json_response["data"][i]["hashtags"] = hashtags
+            del json_response["data"][i]["entities"]
 
         # json 파싱
         data = json.dumps(json_response, indent=4, sort_keys=True)
