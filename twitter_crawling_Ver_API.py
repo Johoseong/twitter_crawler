@@ -57,15 +57,10 @@ class Crawling:
         ## twit text 문장 안에 '/" 있을 시 json으로 파싱 에러 -> 제거해줌
         for i in range(0, len(json_response['data'])):
             json_response['data'][i]['text'] = json_response['data'][i]['text'].replace("'", '').replace('"', '')
+            # 이모티콘/느낌표,물음표 제거 (이모티콘 제거 안할 시 -> encoding 에러 발생)
             json_response['data'][i]['text'] = demoji.replace(json_response['data'][i]['text'], '')
             json_response['data'][i]['text'] = re.sub(r'[^ 0-9ㄱ-ㅣ가-힣A-Za-z.,=<>+^$%&!?"\':;~_\-@(){}\[\]]', '', json_response['data'][i]['text'])
 
-        # 이모티콘/느낌표,물음표 제거 (이모티콘 제거 안할 시 -> encoding 에러 발생)
-        # json_response = demoji.replace(json_response, '')
-        # json_response = re.sub(r'[^ 0-9ㄱ-ㅣ가-힣A-Za-z.,!?"\':;~_\-@(){}\[\]]', '', json_response)
-        # json_response = re.sub(r'[^ 0-9ㄱ-ㅣ가-힣A-Za-z.,=<>+^$%&!?"\':;~_\-@(){}\[\]]', '', json_response)
-        # json_response = ast.literal_eval(json_response)
-        
         for i in range(json_response["meta"]["result_count"]):
             json_response["data"][i]["text"] = re.sub("n", '', json_response["data"][i]["text"])  # 줄바꿈 n 쓰레기값 제거
             " ".join(json_response["data"][i]["text"].split())
