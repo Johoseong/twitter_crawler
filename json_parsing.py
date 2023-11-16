@@ -1,20 +1,17 @@
 import json
 import ast
 import os
-import re
 
 class Parsing:
     path = ""
     input_name = ""
     output_name = ""
-    mo_str = ""
-    eng_str = ""
+    keyword = ""
 
-    def __init__(self, input, eng_keyword):
+    def __init__(self, input, keyword):
         self.path = os.path.dirname(os.path.abspath(__file__)) + "/"
         self.input_name = input
-        self.eng_str = eng_keyword
-        # self.output_name = self.input_name.split('.')[0] + " parsed.json"
+        self.keyword = keyword
 
     def counting(self, dummy):
         i = 0
@@ -29,46 +26,9 @@ class Parsing:
 
         return mo_cnt
 
-    # def json_not_re(self, f, keyword, eng_keyword, author_id,twit_id,lang,tag,date,time,org_twit,geo_id,hash_i, retwit_acct, refined_twit):
-    #     datas = {
-    #             "keyword": keyword,
-    #             "eng_keyword": eng_keyword,
-    #             "author_id": author_id,
-    #             "twit_id": twit_id,
-    #             "lang": lang,
-    #             "tag": tag,
-    #             "date": date,
-    #             "time": time,
-    #             "org_twit": org_twit,
-    #             "geo_id": geo_id,
-    #             "hash": "...",
-    #             "retwit_acct": retwit_acct,
-    #             "refined_twit": refined_twit
-    #             }
-    #     final_d.append(datas)
-
-    # def json_re(self, f, keyword, eng_keyword, author_id,twit_id,lang,tag,date,time,org_twit,geo_id,hash_i,retwit_acct,refined_twit):
-    #     datas = {
-    #             "keyword": keyword,
-    #             "eng_keyword": eng_keyword,
-    #             "author_id": author_id,
-    #             "twit_id": twit_id,
-    #             "lang": lang,
-    #             "tag": tag,
-    #             "date": date,
-    #             "time": time,
-    #             "org_twit": org_twit,
-    #             "geo_id": geo_id,
-    #             "hash": "...",
-    #             "retwit_acct": retwit_acct,
-    #             "refined_twit": refined_twit
-    #             }
-    #     final_d.append(datas)
-
-    def json_parse(self, f, keyword, eng_keyword, author_id,twit_id,lang,tag,date,time,org_twit,geo_id,hash_i,retwit_acct):
+    def json_parse(self, f, keyword, author_id, twit_id, lang, tag, date, time, org_twit, geo_id, retwit_acct, hashtags):
         datas = {
                 "keyword": keyword,
-                "eng_keyword": eng_keyword,
                 "author_id": author_id,
                 "twit_id": twit_id,
                 "lang": lang,
@@ -77,8 +37,8 @@ class Parsing:
                 "time": time,
                 "twit": org_twit,
                 "geo_id": geo_id,
-                "hash": "...",
                 "retwit_acct": retwit_acct,
+                "hashtags": hashtags
                 }
         final_d.append(datas)
 
@@ -89,8 +49,7 @@ class Parsing:
         
         text = input_file.readlines()
 
-        mo_cnt = 0
-        mo_str = self.input_name.split('.')[0:-6]   
+        mo_cnt = 0 
         global final_d
         final_d = list()
         final_s = 0
@@ -137,8 +96,7 @@ class Parsing:
                         sp_id = ""
                         tag_flag = 0
                     
-                    keyword = mo_str
-                    eng_keyword = self.eng_str
+                    keyword = self.keyword
                     author_id = dummy['data'][i]['author_id']
                     twit_id = dummy['data'][i]['id']
                     lang = dummy['data'][i]['lang']
@@ -148,74 +106,13 @@ class Parsing:
                     time = sp_d[1].replace("Z", "")
                     org_twit = checking
                     geo_id = geo
-                    hash_i = "..."
                     retwit_acct = sp_id
+                    hashtags = []
+                    if ("hashtags" in dummy['data'][i]):
+                        hashtags = dummy['data'][i]['hashtags']
 
-                    self.json_parse(f, keyword, eng_keyword, author_id, twit_id, lang, tag, date, time, org_twit, geo_id, hash_i, retwit_acct)
+                    self.json_parse(f, keyword, author_id, twit_id, lang, tag, date, time, org_twit, geo_id, retwit_acct, hashtags)
 
-                    # if(sp_ch[0] == 'RT'):
-                    #     sp_ch = sp_ch[1].split(":")
-                        
-                    #     sp_id = sp_ch.pop(0) # sp_id에 리트윗 원작자 아이디 들어감
-                    #     # rt_remove_txt = "".join(sp_ch)
-                    #     # rt_remove_txt = rt_remove_txt.strip()
-
-                    #     # rt_remove_token = rt_remove_txt.split(" ")
-
-                    #     # search = "https"
-                    #     # for word in rt_remove_token:
-                    #     #     if search in word: 
-                    #     #         rt_remove_token.remove(word)
-                    #     # url_remove_txt = " ".join(rt_remove_token)
-
-                    #     # url_remove_txt = re.sub(r'[^ 0-9ㄱ-ㅣ가-힣]', ' ', url_remove_txt)
-                    #     # url_remove_txt = " ".join(url_remove_txt.split())
-
-                    #     keyword = mo_str
-                    #     eng_keyword = self.eng_str
-                    #     author_id = dummy['data'][i]['author_id']
-                    #     twit_id = dummy['data'][i]['id']
-                    #     lang = dummy['data'][i]['lang']
-                    #     tag = 1 # retwit
-                    #     sp_d = dummy['data'][i]['created_at'].split("T")
-                    #     date = sp_d[0]
-                    #     time = sp_d[1].replace("Z", "")
-                    #     org_twit = checking
-                    #     geo_id = geo
-                    #     hash_i = "..."
-                    #     retwit_acct = sp_id
-                    #     # refined_twit = url_remove_txt
-
-                    #     self.json_re(f, keyword, eng_keyword, author_id, twit_id, lang, tag, date, time, org_twit, geo_id, hash_i, retwit_acct, refined_twit)
-
-                    # else:
-                    #     checking = dummy['data'][i]['text']
-                    #     # token = checking.split(" ")
-
-                    #     # search = "https"
-                    #     # for word in token:
-                    #     #     if search in word: 
-                    #     #         token.remove(word)
-                    #     # url_remove_txt = " ".join(token)
-
-                    #     # url_remove_txt = re.sub(r'[^ 0-9ㄱ-ㅣ가-힣]', ' ', url_remove_txt)
-                    #     # url_remove_txt = " ".join(url_remove_txt.split())
-
-                    #     keyword = mo_str
-                    #     eng_keyword = self.eng_str
-                    #     author_id = dummy['data'][i]['author_id']
-                    #     twit_id = dummy['data'][i]['id']
-                    #     lang = dummy['data'][i]['lang']
-                    #     tag = 0 # not retwit
-                    #     sp_d = dummy['data'][i]['created_at'].split("T")
-                    #     date= sp_d[0]
-                    #     time = sp_d[1].replace("Z", "")
-                    #     org_twit = checking
-                    #     geo_id = geo
-                    #     hash_i = "..."
-                    #     retwit_acct = ""
-                    #     # refined_twit = url_remove_txt
-                    #     self.json_not_re(f, keyword, eng_keyword, author_id, twit_id, lang, tag, date, time, org_twit, geo_id, hash_i, retwit_acct, refined_twit)
         
                 final_s = json.dumps(final_d, indent ='\t')
                 

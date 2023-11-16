@@ -15,7 +15,7 @@ def main(start_date, end_date, keyword_list):
         main_crawling.main_act_indi(keyword_list, keyword_list[i], start_date, end_date)
 
         file_name = main_crawling.fw_name 
-        parsing = json_parsing.Parsing(file_name)
+        parsing = json_parsing.Parsing(file_name, keyword_list[i])
         parsing.main_parsing()
 
 # argument parsing
