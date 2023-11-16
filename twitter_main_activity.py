@@ -1,7 +1,7 @@
 '''
 커맨드 라인 실행법
-argument: [시작날짜] [끝날짜] [키워드] [영문키워드]
-Ex) python twitter_main_activity.py 2021-05-01 2021-06-01 아스트라제네카,화이자 astrazeneca,pfizer
+argument: [시작날짜] [끝날짜] [키워드]
+Ex) python twitter_main_activity.py 2021-05-01 2021-06-01 아스트라제네카,화이자
 '''
 import argparse
 import twitter_crawling_Ver_API
@@ -24,7 +24,6 @@ def get_arguments():
     parser.add_argument(nargs='+' ,help='Example) 2021-05-01', dest='start_date')
     parser.add_argument(nargs='+' ,help='Example) 2021-06-01', dest='end_date')
     parser.add_argument(nargs='+' ,help='Example) 아스트라제네카,화이자', dest='keyword')
-    # parser.add_argument(nargs='+', help='Example) astrazeneca,pfizer', dest='eng_keyword')
 
     start = parser.parse_args().start_date
     end = parser.parse_args().end_date

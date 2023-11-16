@@ -17,7 +17,7 @@ class Crawling:
         self.search_url = "https://api.twitter.com/2/tweets/search/all"
 
         self.query_params = {'query': '', 'tweet.fields': 'created_at,lang,author_id,entities,geo',
-                              'start_time': '', 'end_time': '', 'max_results': '100'}
+                              'start_time': '', 'end_time': '', 'max_results': '300'}
         self.fw_name = ""
 
     def create_headers(self):
@@ -55,37 +55,41 @@ class Crawling:
         # crawling 후 json_response에 twit 데이터 저장 
         json_response = self.connect_to_endpoint(headers)
         ## twit text 문장 안에 '/" 있을 시 json으로 파싱 에러 -> 제거해줌
-        for i in range(0, len(json_response['data'])):
-            json_response['data'][i]['text'] = json_response['data'][i]['text'].replace("'", '').replace('"', '')
-            # 이모티콘/느낌표,물음표 제거 (이모티콘 제거 안할 시 -> encoding 에러 발생)
-            json_response['data'][i]['text'] = demoji.replace(json_response['data'][i]['text'], '')
-            json_response['data'][i]['text'] = re.sub(r'[^ 0-9ㄱ-ㅣ가-힣A-Za-z.,=<>+^$%&!?"\':;~_\-@(){}\[\]]', '', json_response['data'][i]['text'])
+        if 'data' in json_response:
+            for i in range(0, len(json_response['data'])):
+                json_response['data'][i]['text'] = json_response['data'][i]['text'].replace("'", '').replace('"', '')
+                # 이모티콘/느낌표,물음표 제거 (이모티콘 제거 안할 시 -> encoding 에러 발생)
+                json_response['data'][i]['text'] = demoji.replace(json_response['data'][i]['text'], '')
+                json_response['data'][i]['text'] = re.sub(r'[^ 0-9ㄱ-ㅣ가-힣A-Za-z.,=<>+^$%&!?"\':;~_\-@(){}\[\]]', '', json_response['data'][i]['text'])
 
-        for i in range(json_response["meta"]["result_count"]):
-            json_response["data"][i]["text"] = re.sub("n", '', json_response["data"][i]["text"])  # 줄바꿈 n 쓰레기값 제거
-            " ".join(json_response["data"][i]["text"].split())
+            for i in range(json_response["meta"]["result_count"]):
+                json_response["data"][i]["text"] = re.sub("n", '', json_response["data"][i]["text"])  # 줄바꿈 n 쓰레기값 제거
+                " ".join(json_response["data"][i]["text"].split())
 
-            if ("entities" not in json_response["data"][i]):
-                continue
-            if ("hashtags" not in json_response["data"][i]["entities"]):
+                if ("withheld" in json_response["data"][i]):
+                    del json_response["data"][i]["withheld"]
+
+                if ("entities" not in json_response["data"][i]):
+                    continue
+                if ("hashtags" not in json_response["data"][i]["entities"]):
+                    del json_response["data"][i]["entities"]
+                    continue
+                
+                hashtags = []
+                for h in json_response["data"][i]["entities"]["hashtags"]:
+                    hashtags.append(h["tag"])
+
+                json_response["data"][i]["hashtags"] = hashtags
                 del json_response["data"][i]["entities"]
-                continue
-            
-            hashtags = []
-            for h in json_response["data"][i]["entities"]["hashtags"]:
-                hashtags.append(h["tag"])
 
-            json_response["data"][i]["hashtags"] = hashtags
-            del json_response["data"][i]["entities"]
+            # json 파싱
+            data = json.dumps(json_response, indent=4, sort_keys=True)
+            data = data.encode('utf-8')
 
-        # json 파싱
-        data = json.dumps(json_response, indent=4, sort_keys=True)
-        data = data.encode('utf-8')
+            # 한글 출력 위한 decode
+            data = data.decode('unicode_escape', 'replace')
 
-        # 한글 출력 위한 decode
-        data = data.decode('unicode_escape', 'replace')
-
-        fw.write(data)
+            fw.write(data)
         try:
             self.query_params['next_token'] = json_response['meta']['next_token']
         except Exception as e:
