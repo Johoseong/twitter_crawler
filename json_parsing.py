@@ -114,11 +114,9 @@ class Parsing:
                     self.json_parse(f, keyword, author_id, twit_id, lang, tag, date, time, org_twit, geo_id, retwit_acct, hashtags)
 
         
-                final_s = json.dumps(final_d, indent ='\t')
+                final_s = json.dumps(final_d, indent ='\t', ensure_ascii=False)
                 
             if start == 1:
                 dummy += line
 
-        final_s = final_s.encode('utf-8')
-        final_s = final_s.decode('unicode_escape', 'replace')
         f.write(final_s)

@@ -29,6 +29,7 @@ class Crawling:
         # print(response.status_code)
         if response.status_code != 200:
             raise Exception(response.status_code, response.text)
+        response.encoding = 'utf-8'
         return response.json()
 
     def make_file_name(self, keyword):
@@ -83,11 +84,7 @@ class Crawling:
                 del json_response["data"][i]["entities"]
 
             # json 파싱
-            data = json.dumps(json_response, indent=4, sort_keys=True)
-            data = data.encode('utf-8')
-
-            # 한글 출력 위한 decode
-            data = data.decode('unicode_escape', 'replace')
+            data = json.dumps(json_response, indent=4, sort_keys=True, ensure_ascii=False)
 
             fw.write(data)
         try:
